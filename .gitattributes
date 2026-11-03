@@ -1,0 +1,5 @@
+# keep every text file LF in the repository: the shell scripts and the kernel
+# source must not arrive with CRLF on a Linux box
+* text=auto eol=lf
+*.png binary
+*.bin binary

@@ -1,0 +1,25 @@
+# firmware blobs and pre-fetched .debs are not tracked:
+#  - firmware: Qualcomm binaries, redistributed under the linux-firmware terms.
+#              run scripts/fetch-firmware.sh to populate this directory.
+#  - debs:     distro packages, fetch with scripts/fetch-debs.sh
+firmware/*
+debs/*
+!firmware/.gitkeep
+!debs/.gitkeep
+
+# build products
+*.ko
+*.mod
+*.mod.c
+*.o
+*.o.cmd
+*.ko.cmd
+.tmp_versions/
+Module.symvers
+modules.order
+
+# local junk
+*.tar.gz
+*.bak
+*.fc-backup
+.DS_Store

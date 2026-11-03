@@ -1,0 +1,34 @@
+NOTICE
+======
+
+This repository contains three kinds of material with different origins and
+licences.  Read this before redistributing anything from it.
+
+1. btusb/  —  Linux kernel source, GPL-2.0
+   btusb/src-6.8/btusb.c and the headers next to it are copied from the Linux
+   kernel (drivers/bluetooth/) as shipped by Ubuntu 22.04's 6.8 kernel and are
+   licensed GPL-2.0.  btusb/patch_btusb.py adds the Qualcomm WCN785x USB IDs.
+   Kernel version: 6.8.0-138-generic (Ubuntu 22.04.5).
+   Upstream commit for the same device ID: a6587d7ed2cd8 in v6.13
+   ("Bluetooth: btusb: Add ID 0x2c7c:0x0130 for Qualcomm WCN785x").
+
+2. Scripts —  the installer/verifier shell scripts in this repository are
+   released under GPL-2.0 as well (see LICENSE), to keep the whole tree under a
+   single licence compatible with the kernel code it builds against.
+
+3. firmware/ —  Qualcomm Atheros / Qualcomm firmware images, NOT GPL.
+   The blobs are taken verbatim from the linux-firmware tree
+   (https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git),
+   where they are distributed under the terms described in that tree's WHENCE
+   file and the per-vendor licence files (for ath12k: the files under
+   ath12k/WCN7850/hw2.0/Notice.txt).  They are redistributable as part of a
+   firmware package but remain proprietary Qualcomm code; nothing here grants
+   you rights beyond those terms.  The repository itself does not track these
+   blobs - scripts/fetch-firmware.sh downloads them at install time.
+
+4. debs/ —  distro packages (dkms, build-essential, kernel headers) that are
+   not tracked here either; scripts/fetch-debs.sh downloads them from the
+   user's configured apt mirrors, under their own licences.
+
+No Qualcomm, Ubuntu, Debian or Linux kernel trademark rights are claimed.
+This is an unofficial community fix; it is not endorsed by Qualcomm.
