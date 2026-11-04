@@ -26,20 +26,58 @@ info "preparing to rebuild btusb for $KREL"
 install_pkgs build-essential python3 dpkg-dev "linux-headers-$KREL"
 
 # ------------------------------------------------------------- deb-src ------
+# Handles both layouts:
+#  - classic one-line:   deb [arch=amd64] URI suite components
+#  - deb822 (Ubuntu >= 24.04, Debian >= 13):  /etc/apt/sources.list.d/*.sources
 ensure_deb_src() {
-	if grep -rhs '^deb-src ' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | grep -q .; then
+	if grep -rhs -e '^deb-src ' -e '^Types:.*deb-src' \
+			/etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | grep -q .; then
 		return
 	fi
+
 	warn "no deb-src entries found - enabling them for the configured mirrors"
-	local tmp
-	tmp=$(mktemp)
+	local classic=/tmp/fc-src-classic.list
+	local deb822=/tmp/fc-src-deb822.sources
+	local f wrote=0
+
 	grep -rhs '^deb ' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null |
 		sed -e 's/^deb \[/deb-src [/' -e 's/^deb /deb-src /' |
-		grep -v 'launchpadcontent.net' > "$tmp"
-	[ -s "$tmp" ] || die "could not derive deb-src lines from /etc/apt/sources.list"
-	cp /etc/apt/sources.list "/etc/apt/sources.list.fc-backup.$(date +%s)" 2>/dev/null || true
-	install -m 0644 "$tmp" /etc/apt/sources.list.d/fastconnect-src.list
-	rm -f "$tmp"
+		grep -v 'launchpadcontent.net' > "$classic" || true
+
+	: > "$deb822"
+	for f in /etc/apt/sources.list.d/*.sources; do
+		[ -f "$f" ] || continue
+		awk 'BEGIN { RS = ""; ORS = "\n\n" }
+		{
+			has_deb = 0; has_src = 0
+			n = split($0, lines, "\n")
+			for (i = 1; i <= n; i++) {
+				if (lines[i] ~ /^Types:/) {
+					if (lines[i] ~ /deb-src/) has_src = 1
+					else if (lines[i] ~ /(^|[ \t])deb([ \t]|$)/) has_deb = 1
+				}
+			}
+			if (has_deb && !has_src) {
+				for (i = 1; i <= n; i++) {
+					if (lines[i] ~ /^Types:/)
+						sub(/^Types:.*/, "Types: deb-src", lines[i])
+					print lines[i]
+				}
+			}
+		}' "$f" >> "$deb822"
+	done
+
+	if [ -s "$classic" ]; then
+		install -m 0644 "$classic" /etc/apt/sources.list.d/fastconnect-src.list
+		wrote=1
+	fi
+	if [ -s "$deb822" ]; then
+		install -m 0644 "$deb822" /etc/apt/sources.list.d/fastconnect-src.sources
+		wrote=1
+	fi
+	rm -f "$classic" "$deb822"
+
+	[ "$wrote" = 1 ] || die "could not derive deb-src entries - add a deb-src source manually and re-run"
 	apt-get update -qq || die "apt-get update failed"
 }
 

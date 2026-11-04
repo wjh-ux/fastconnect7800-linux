@@ -1,5 +1,10 @@
 # FastConnect 7800 (WCN7850 / NCM865) on Ubuntu & Debian
 
+[![ci](https://github.com/wjh-ux/fastconnect7800-linux/actions/workflows/ci.yml/badge.svg)](https://github.com/wjh-ux/fastconnect7800-linux/actions/workflows/ci.yml)
+[![license: GPL-2.0](https://img.shields.io/badge/license-GPL--2.0-blue.svg)](LICENSE)
+![platform](https://img.shields.io/badge/platform-Ubuntu%20%7C%20Debian-informational)
+![kernel](https://img.shields.io/badge/kernel-%E2%89%A5%206.8%20%2F%20BT%20%E2%89%A5%206.13-lightgrey)
+
 WiFi 7 + Bluetooth driver setup for the **Qualcomm FastConnect 7800** — the M.2 module
 that Windows calls *"Qualcomm FastConnect 7800 Wi-Fi 7 High Band Simultaneous (HBS)
 Network Adapter"* (PCI `17cb:1107`, module **NCM865**, USB BT `2c7c:0130`).
@@ -53,7 +58,19 @@ sudo ./install-offline.sh
 ```
 
 不想装脚本、只想拿现成的离线包：[Releases](https://github.com/wjh-ux/fastconnect7800-linux/releases)
-里有带固件与 deb 的完整 tar.gz。
+里有带固件与 deb 的完整 tar.gz。下载后先核对校验和：
+
+```bash
+sha256sum -c SHA256SUMS        # 和 tar.gz 放在同一目录
+```
+
+## 2.1 前提
+
+- Ubuntu 22.04 / 24.04（Debian 12 需先上 backports 6.12，脚本会处理）—— 其它版本没测过
+- 内核 ≥ 6.8（`ath12k` 支持 WCN7850）
+- 能 `sudo`，能写 `/lib/firmware` 与 `/lib/modules`
+- 装脚本的机器 = 这块卡所在的机器（虚拟机里没有 PCIe 直通，装了也用不上）
+
 
 ## 3. `install.sh` 做了什么
 
@@ -127,6 +144,20 @@ bluetoothctl list           # hci0
   重编失败时 btusb 退回发行版原版 —— 只有蓝牙失效，**WiFi 不受影响**（ath12k 是内核自带的）。
 - 内核 ≥ 6.13 后补丁模块多余：`sudo ./uninstall.sh`。
 
+## 6. 常见故障速查
+
+| 症状 | 大概率原因 | 处理 |
+|------|-----------|------|
+| `lspci` 里没有 `17cb:1107` | 卡没通电/被 BIOS 屏蔽/在虚拟机里 | `rfkill list`、BIOS 里找 WLAN；虚拟机无 PCIe 直通 |
+| 有卡、没有 `wlan0`，`dmesg` 报 `failed to load firmware` | 固件缺 | `./scripts/fetch-firmware.sh` 或 `install.sh` |
+| `dmesg` 报 `ath12k ... invalid firmware` | 固件版本与内核不匹配 | 更新内核或换回发行版 `linux-firmware` |
+| 6 GHz 看不到 | 国家码/regdb | `sudo iw reg set CN`，`iw reg get` 确认 |
+| `modinfo btusb` 没有 `2C7C` | 补丁模块没装上/被内核更新冲掉 | 重跑 `install.sh` |
+| `insmod: Key was rejected by service` | Secure Boot 未注册 MOK | 第 4 节 |
+| `hci0` 起不来，`Opcode 0x0c03 failed: -110` | 这张 USB 蓝牙通道个别机器不配合 | 换 Intel BE200/AX210 或 USB 蓝牙棒 |
+| `dkms build failed` | 缺内核头文件 | `apt install linux-headers-$(uname -r)` 后重跑 |
+| 装了补丁后蓝牙仍无 `hci0` | 设备没被识别成 USB | `lsusb \| grep 2c7c` 先确认 |
+
 ## 7. 仓库结构
 
 ```
@@ -140,6 +171,8 @@ scripts/
   build-btusb-from-source.sh    # 非 6.8 内核：取本机内核源码编译
   fetch-firmware.sh             # 下载 21 个固件到 firmware/
   fetch-debs.sh                 # 预下载 dkms/头文件等到 debs/
+tests/run.sh                    # 静态自检（CI 跑的就是它）
+.github/workflows/ci.yml        # shellcheck + 自检 + 链接检查
 ```
 
 ## 8. 许可
@@ -150,7 +183,17 @@ scripts/
   但**不属于** GPL；仓库本身不跟踪这些二进制，用 `scripts/fetch-firmware.sh` 现取。
 - 详细来源与条款见 [NOTICE](NOTICE)。
 
-## 9. 参考
+## 9. 参与
+
+- 遇到问题：[开 issue](https://github.com/wjh-ux/fastconnect7800-linux/issues/new/choose)，
+  模板会要求你贴 `./verify.sh` 的输出 —— 没有硬件信息的 issue 基本没法查。
+- 想改代码：先看 [CONTRIBUTING.md](CONTRIBUTING.md)，提交前跑 `bash tests/run.sh`。
+- 安全相关（脚本提权、供应链）：见 [SECURITY.md](SECURITY.md)，别开公开 issue。
+- 版本变化：[CHANGELOG.md](CHANGELOG.md)。
+- 最有用的贡献其实是**机型反馈**：`hci0` 起不起得来、6 GHz 能不能上，这两个数据点
+  比代码更稀缺。
+
+## 10. 参考
 
 - 上游加入该 ID 的提交（v6.13）：
   `a6587d7ed2cd8` — *Bluetooth: btusb: Add ID 0x2c7c:0x0130 for Qualcomm WCN785x*

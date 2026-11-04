@@ -1,0 +1,75 @@
+name: Bug report
+description: 驱动没工作 / 机型不兼容 / 脚本出错
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先跑一下 `./verify.sh`，把输出贴进来 —— 它能回答我 80% 的问题。
+        纯“WiFi 用不了”而没有硬件信息的问题很难处理。
+
+  - type: input
+    id: hardware
+    attributes:
+      label: 机器型号
+      placeholder: e.g. ThinkPad T14p Gen2 / ROG Zephyrus G14 2024 / 自组 NUC
+    validations:
+      required: true
+
+  - type: input
+    id: module
+    attributes:
+      label: 无线模块
+      description: 输出 `lspci -nn | grep -i 17cb` 与 `lsusb | grep -i 2c7c`
+      placeholder: "17cb:1107 (NCM865) / 2c7c:0130"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: 发行版与内核
+      description: 输出 `lsb_release -ds` 和 `uname -r`
+      placeholder: Ubuntu 22.04.5 LTS / 6.8.0-138-generic
+    validations:
+      required: true
+
+  - type: textarea
+    id: verify
+    attributes:
+      label: verify.sh 输出
+      description: 贴完整输出（`./verify.sh`），别只贴最后一行
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: dmesg
+    attributes:
+      label: 相关内核日志
+      description: "`sudo dmesg | grep -iE 'ath12k|btusb|firmware' | tail -50`"
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: which
+    attributes:
+      label: 哪一半不工作
+      options:
+        - WiFi
+        - 蓝牙
+        - 两个都不行
+        - 装的时候脚本就报错了
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: done
+    attributes:
+      label: 已经确认过
+      options:
+        - label: 已按 README 第 4 节处理 Secure Boot（mokutil 注册或关掉）
+        - label: 已重启过（模块首次加载必须重启或至少 modprobe 重载）
+        - label: 已确认 `modinfo btusb | grep -i 2C7C` 有输出

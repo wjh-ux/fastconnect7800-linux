@@ -62,7 +62,7 @@ install_firmware() {
 		fi
 		install -m 0644 "$f" "$dest"
 		changed=$((changed + 1))
-	done < <(find "$src" -type f -print0)
+	done < <(find "$src" -type f ! -name '.gitkeep' -print0)
 
 	for f in ath12k/WCN7850/hw2.0/amss.bin \
 	         ath12k/WCN7850/hw2.0/m3.bin \
