@@ -22,7 +22,7 @@ if compgen -G "$HERE/debs/*.deb" >/dev/null 2>&1; then
 	dpkg -i "$HERE"/debs/*.deb 2>&1 |
 		grep -viE 'already installed|already the newest|^Preparing|^Unpacking|^Setting up|^Processing' |
 		tail -20 || true
-	ok "$(ls -1 "$HERE"/debs/*.deb | wc -l) package(s) unpacked"
+	ok "$(find "$HERE/debs" -maxdepth 1 -name '*.deb' | wc -l) package(s) unpacked"
 else
 	warn "no debs/ directory - using whatever is already installed"
 fi

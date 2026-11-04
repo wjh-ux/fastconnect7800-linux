@@ -17,9 +17,12 @@ as_root() {
 	fi
 }
 
-distro_id() { . /etc/os-release 2>/dev/null; printf '%s' "${ID:-unknown}"; }
-distro_ver() { . /etc/os-release 2>/dev/null; printf '%s' "${VERSION_ID:-0}"; }
-distro_like() { . /etc/os-release 2>/dev/null; printf '%s' "${ID_LIKE:-}"; }
+# shellcheck source=/dev/null
+os_release() { . /etc/os-release 2>/dev/null; }
+
+distro_id() { os_release; printf '%s' "${ID:-unknown}"; }
+distro_ver() { os_release; printf '%s' "${VERSION_ID:-0}"; }
+distro_like() { os_release; printf '%s' "${ID_LIKE:-}"; }
 
 kver() { uname -r; }
 kver_mm() { uname -r | cut -d. -f1,2; }

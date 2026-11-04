@@ -142,7 +142,11 @@ depmod -a "$KREL"
 update-initramfs -u -k "$KREL" >/dev/null 2>&1 || true
 
 ok "installed $(modinfo -n btusb)"
-modinfo btusb | grep -qi 'v2C7Cp0130' && ok "btusb advertises 2c7c:0130" || warn "alias still missing"
+if modinfo btusb | grep -qi 'v2C7Cp0130'; then
+	ok "btusb advertises 2c7c:0130"
+else
+	warn "alias still missing"
+fi
 
 echo
 echo "  to activate now:   sudo modprobe -r btusb 2>/dev/null; sudo modprobe btusb"

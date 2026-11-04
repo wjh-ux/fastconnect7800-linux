@@ -41,4 +41,4 @@ chmod 0644 "$DEST"/*.deb 2>/dev/null || true
 echo
 ls -1sh "$DEST"/*.deb
 echo
-echo "$(ls -1 "$DEST"/*.deb | wc -l) package(s), $(du -sh "$DEST" | cut -f1) in $DEST"
+echo "$(find "$DEST" -maxdepth 1 -name '*.deb' | wc -l) package(s), $(du -sh "$DEST" | cut -f1) in $DEST"

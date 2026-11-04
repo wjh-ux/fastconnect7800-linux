@@ -29,12 +29,12 @@ fi
 
 echo "3) scripts are executable"
 for f in install.sh install-offline.sh verify.sh uninstall.sh scripts/*.sh; do
-	[ -x "$f" ] && pass "$f" || fail "$f is not +x"
+	if [ -x "$f" ]; then pass "$f"; else fail "$f is not +x"; fi
 done
 
 echo "4) btusb source carries exactly the three WCN785x IDs"
 n=$(grep -c 'USB_DEVICE(0x2c7c, 0x01' btusb/src-6.8/btusb.c 2>/dev/null || echo 0)
-[ "$n" -eq 3 ] && pass "3 IDs present" || fail "expected 3 USB IDs, found $n"
+if [ "$n" -eq 3 ]; then pass "3 IDs present"; else fail "expected 3 USB IDs, found $n"; fi
 
 echo "5) patch script is idempotent"
 # note: `command -v python3` alone is not enough - on Windows the Store stub
@@ -57,11 +57,22 @@ else
 fi
 
 echo "6) required files exist"
-for f in LICENSE NOTICE README.md install.sh lib.sh \
-         btusb/src-6.8/btusb.c btusb/src-6.8/Makefile btusb/patch_btusb.py \
-         scripts/build-btusb-from-source.sh scripts/fetch-firmware.sh scripts/fetch-debs.sh; do
-	[ -s "$f" ] && pass "$f" || fail "$f missing or empty"
+for f in LICENSE NOTICE README.md README.en.md COMPATIBILITY.md docs/EXPECTED.md \
+         install.sh lib.sh btusb/src-6.8/btusb.c btusb/src-6.8/Makefile \
+         btusb/patch_btusb.py scripts/build-btusb-from-source.sh \
+         scripts/fetch-firmware.sh scripts/fetch-debs.sh firmware/SHA256SUMS; do
+	if [ -s "$f" ]; then pass "$f"; else fail "$f missing or empty"; fi
 done
+
+echo "7) firmware checksum manifest covers the 21 blobs"
+sums=$(grep -c '^[0-9a-f]\{64\}  ' firmware/SHA256SUMS 2>/dev/null || echo 0)
+if [ "$sums" -eq 21 ]; then pass "21 pinned hashes"; else fail "expected 21 hashes, found $sums"; fi
+if grep -q 'ath12k/WCN7850/hw2.0/amss.bin' firmware/SHA256SUMS &&
+   grep -q 'qca/rampatch_usb_00190200.bin' firmware/SHA256SUMS; then
+	pass "WiFi and Bluetooth blobs are pinned"
+else
+	fail "manifest is missing the key blobs"
+fi
 
 echo
 if [ "$FAIL" -eq 0 ]; then

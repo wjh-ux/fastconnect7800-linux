@@ -5,6 +5,7 @@
 firmware/*
 debs/*
 !firmware/.gitkeep
+!firmware/SHA256SUMS
 !debs/.gitkeep
 
 # build products

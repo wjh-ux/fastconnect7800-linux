@@ -1,0 +1,73 @@
+name: release
+
+# Push a tag like v1.1.0 and this builds the offline bundle (repository +
+# firmware blobs, hash-verified) and publishes it with SHA256SUMS.
+#
+# The bundle deliberately does NOT contain .debs: kernel headers are tied to one
+# exact kernel ABI, so they can only be fetched on the machine that will use
+# them - see scripts/fetch-debs.sh.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: fetch and verify firmware
+        run: ./scripts/fetch-firmware.sh
+
+      - name: build bundle
+        id: bundle
+        run: |
+          set -euo pipefail
+          name="fastconnect7800-linux-bundle-${GITHUB_REF_NAME}.tar.gz"
+          tmp="$(mktemp -d)"
+          mkdir -p "$tmp/fastconnect7800-linux"
+          # tracked files exactly as in git (LF endings, exec bits)
+          git archive HEAD | tar -x -C "$tmp/fastconnect7800-linux"
+          # plus the firmware the driver needs
+          cp -a firmware/ath12k firmware/qca "$tmp/fastconnect7800-linux/firmware/"
+          cp -a firmware/SHA256SUMS "$tmp/fastconnect7800-linux/firmware/"
+          tar -czf "$RUNNER_TEMP/$name" -C "$tmp" fastconnect7800-linux
+          sha256sum "$RUNNER_TEMP/$name" > "$RUNNER_TEMP/SHA256SUMS"
+          ls -lh "$RUNNER_TEMP/$name"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          name='${{ steps.bundle.outputs.name }}'
+          notes_file="$RUNNER_TEMP/notes.md"
+          {
+            echo "Offline bundle for the Qualcomm FastConnect 7800 (WCN7850 / NCM865)."
+            echo
+            echo "Contains the full tree at \`${GITHUB_REF_NAME}\` **plus** the 21 firmware blobs"
+            echo "(\`ath12k/WCN7850/hw2.0\` + \`qca/*00190200*\`), verified against"
+            echo "\`firmware/SHA256SUMS\` before packaging."
+            echo
+            echo '```bash'
+            echo "sha256sum -c SHA256SUMS          # verify the download"
+            echo "tar xzf $name && cd fastconnect7800-linux"
+            echo "sudo ./install.sh                # or ./install-offline.sh after fetch-debs"
+            echo '```'
+            echo
+            echo "No \`.deb\` files are included: kernel headers are bound to one exact ABI,"
+            echo "so run \`sudo ./scripts/fetch-debs.sh\` on the target (or a twin machine)"
+            echo "when you need a fully offline install."
+          } > "$notes_file"
+          gh release create "$GITHUB_REF_NAME" \
+            "$RUNNER_TEMP/$name" "$RUNNER_TEMP/SHA256SUMS" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file "$notes_file" \
+            --verify-tag

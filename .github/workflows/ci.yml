@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: shellcheck + static self-check
@@ -15,9 +18,9 @@ jobs:
       - name: install shellcheck
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
 
-      - name: shellcheck (errors only)
+      - name: shellcheck (info and above)
         run: |
-          shellcheck -S error \
+          shellcheck -S info \
             install.sh install-offline.sh verify.sh uninstall.sh lib.sh \
             scripts/*.sh tests/run.sh
 
@@ -26,9 +29,40 @@ jobs:
 
       - name: markdown link sanity
         run: |
-          # every relative link in README must exist in the tree
-          grep -oE '\]\([^)#][^)]*\)' README.md | sed 's/^](//; s/)$//' |
-          while read -r l; do
-            case "$l" in http*|mailto*) continue ;; esac
-            [ -e "$l" ] || { echo "broken link: $l"; exit 1; }
+          # every relative link in the docs must exist in the tree
+          status=0
+          for md in README.md README.en.md COMPATIBILITY.md CONTRIBUTING.md SECURITY.md docs/EXPECTED.md; do
+            grep -oE '\]\([^)#][^)]*\)' "$md" | sed 's/^](//; s/)$//' |
+            while read -r l; do
+              case "$l" in http*|mailto*) continue ;; esac
+              [ -e "$l" ] || { echo "$md: broken link: $l"; exit 1; }
+            done || status=1
           done
+          exit $status
+
+  distro-matrix:
+    name: self-check on ${{ matrix.image }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - ubuntu:22.04
+          - ubuntu:24.04
+          - debian:12
+          - debian:13
+    container: ${{ matrix.image }}
+    steps:
+      - name: base tools (checkout needs git inside the container)
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends \
+            ca-certificates git bash python3 coreutils findutils grep tar >/dev/null
+
+      - uses: actions/checkout@v4
+
+      - name: bash version
+        run: bash --version | head -1
+
+      - name: static self-check
+        run: bash tests/run.sh

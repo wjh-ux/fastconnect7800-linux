@@ -12,7 +12,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 as_root "$@"
 
 info "removing DKMS package btusb-fastconnect"
-dkms remove btusb-fastconnect/1.0 --all >/dev/null 2>&1 && ok "dkms module removed" || warn "dkms package not installed"
+if dkms remove btusb-fastconnect/1.0 --all >/dev/null 2>&1; then
+	ok "dkms module removed"
+else
+	warn "dkms package not installed"
+fi
 rm -rf /usr/src/btusb-fastconnect-1.0
 
 info "removing the hand-built module from /lib/modules"
@@ -22,7 +26,8 @@ if [ -f "$DEST/btusb.ko" ]; then
 	rm -f "$DEST/btusb.ko"
 	ok "removed $DEST/btusb.ko"
 fi
-LATEST_BAK=$(ls -1t "$DEST"/btusb.ko.bak.* 2>/dev/null | head -1)
+LATEST_BAK=$(find "$DEST" -maxdepth 1 -name 'btusb.ko.bak.*' -printf '%T@ %p\n' 2>/dev/null |
+	sort -rn | head -1 | cut -d' ' -f2-)
 if [ -n "$LATEST_BAK" ]; then
 	cp -a "$LATEST_BAK" "$DEST/btusb.ko"
 	ok "restored backup $(basename "$LATEST_BAK")"

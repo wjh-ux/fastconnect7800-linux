@@ -18,14 +18,22 @@ line
 echo "1) hardware visible to this kernel"
 ask sh -c "lspci -nn | grep -i 17cb"  || true
 ask sh -c "lsusb | grep -i 2c7c"     || true
-lspci -nn 2>/dev/null | grep -qi 17cb:1107 && ok "WiFi PCI 17cb:1107 present" || warn "WiFi PCI 17cb:1107 NOT visible"
-lsusb 2>/dev/null | grep -qi 2c7c:0130 && ok "BT USB 2c7c:0130 present"       || warn "BT USB 2c7c:0130 NOT visible"
+if lspci -nn 2>/dev/null | grep -qi 17cb:1107; then
+	ok "WiFi PCI 17cb:1107 present"
+else
+	warn "WiFi PCI 17cb:1107 NOT visible"
+fi
+if lsusb 2>/dev/null | grep -qi 2c7c:0130; then
+	ok "BT USB 2c7c:0130 present"
+else
+	warn "BT USB 2c7c:0130 NOT visible"
+fi
 line
 
 echo "2) drivers"
 printf '  ath12k : %s\n' "$(modinfo -F filename ath12k 2>/dev/null || echo missing)"
 printf '  btusb  : %s\n' "$(modinfo -n btusb 2>/dev/null || echo missing)"
-btusb_has_id && ok "btusb advertises 2c7c:0130" || warn "btusb does NOT advertise 2c7c:0130"
+if btusb_has_id; then ok "btusb advertises 2c7c:0130"; else warn "btusb does NOT advertise 2c7c:0130"; fi
 ask sh -c "lsmod | grep -E 'ath12k|btusb|btqca|bluetooth'"
 line
 

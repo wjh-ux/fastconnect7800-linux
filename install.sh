@@ -126,9 +126,11 @@ setup_btusb() {
 		bash "$HERE/scripts/build-btusb-from-source.sh" || die "btusb rebuild failed"
 	fi
 
-	modinfo btusb 2>/dev/null | grep -qi 'v2C7Cp0130' \
-		&& ok "btusb now advertises 2c7c:0130" \
-		|| warn "module installed but the alias is still missing - check depmod output"
+	if modinfo btusb 2>/dev/null | grep -qi 'v2C7Cp0130'; then
+		ok "btusb now advertises 2c7c:0130"
+	else
+		warn "module installed but the alias is still missing - check depmod output"
+	fi
 }
 
 # ----------------------------------------------------------------- main ------
