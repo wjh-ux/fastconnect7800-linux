@@ -18,7 +18,8 @@ Linux 里是两块彼此独立的设备：PCI `17cb:1107`（WiFi）和 USB `2c7c
 `hci0: Opcode 0x0c03 failed: -110`。本仓库做的就是把那个 ID 补上（DKMS 模块）并把固件备齐。
 
 > 真机验证（Ubuntu 22.04.5 / 6.8.0-138）：WiFi 连接 ASUS RT-BE88U 正常上网，
-> 蓝牙鼠标、蓝牙耳机均连接并正常工作。机型列表见 [COMPATIBILITY.md](COMPATIBILITY.md)。
+> 蓝牙鼠标、蓝牙耳机均连接并正常工作。机型列表见 [COMPATIBILITY.md](COMPATIBILITY.md)，
+> 可复现的构建/安装证据见 [docs/EVIDENCE.md](docs/EVIDENCE.md)。
 
 ---
 

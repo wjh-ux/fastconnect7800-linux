@@ -21,7 +21,8 @@ one ID as a DKMS module and ships the firmware.
 
 > Verified on real hardware (Ubuntu 22.04.5 / 6.8.0-138): WiFi 7 associates with an ASUS
 > RT-BE88U, a Bluetooth mouse and a Bluetooth headset both connect and work.
-> Machine matrix: [COMPATIBILITY.md](COMPATIBILITY.md).
+> Machine matrix: [COMPATIBILITY.md](COMPATIBILITY.md). Reproducible build/install
+> evidence: [docs/EVIDENCE.md](docs/EVIDENCE.md).
 
 ---
 

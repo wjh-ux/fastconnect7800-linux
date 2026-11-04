@@ -5,13 +5,15 @@ set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
 fail=0
-for md in README.md README.en.md COMPATIBILITY.md CONTRIBUTING.md SECURITY.md docs/EXPECTED.md; do
+for md in README.md README.en.md COMPATIBILITY.md CONTRIBUTING.md SECURITY.md \
+          docs/EXPECTED.md docs/EVIDENCE.md; do
 	[ -f "$md" ] || { echo "missing: $md"; fail=1; continue; }
+	base=$(dirname "$md")
 	while IFS= read -r l; do
 		case "$l" in
 			''|http*|mailto*|'#'*|./*|../*|/*) continue ;;
 		esac
-		if [ ! -e "$l" ]; then
+		if [ ! -e "$base/$l" ] && [ ! -e "$l" ]; then
 			echo "$md: broken link: $l"
 			fail=1
 		fi
