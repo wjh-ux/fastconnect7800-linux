@@ -28,17 +28,24 @@ jobs:
         run: bash tests/run.sh
 
       - name: markdown link sanity
+        shell: bash
         run: |
-          # every relative link in the docs must exist in the tree
-          status=0
-          for md in README.md README.en.md COMPATIBILITY.md CONTRIBUTING.md SECURITY.md docs/EXPECTED.md; do
-            grep -oE '\]\([^)#][^)]*\)' "$md" | sed 's/^](//; s/)$//' |
-            while read -r l; do
-              case "$l" in http*|mailto*) continue ;; esac
-              [ -e "$l" ] || { echo "$md: broken link: $l"; exit 1; }
-            done || status=1
+          set -uo pipefail
+          fail=0
+          for md in README.md README.en.md COMPATIBILITY.md CONTRIBUTING.md \
+                    SECURITY.md docs/EXPECTED.md; do
+            [ -f "$md" ] || continue
+            while IFS= read -r l; do
+              case "$l" in
+                ''|http*|mailto*|'#'*|./*|../*|/*) continue ;;
+              esac
+              [ -e "$l" ] || { echo "$md: broken link: $l"; fail=1; }
+            done < <(grep -oE '\]\([^)]+\)' "$md" \
+                     | sed -e 's/^](//' -e 's/)$//' \
+                     | sed -e 's/[[:space:]].*$//' -e 's/#.*$//' \
+                     | sort -u)
           done
-          exit $status
+          exit $fail
 
   distro-matrix:
     name: self-check on ${{ matrix.image }}
