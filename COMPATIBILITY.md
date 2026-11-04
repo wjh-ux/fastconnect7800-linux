@@ -5,26 +5,29 @@ One row per machine. Only list what was actually tested — no guesses.
 
 | 机器 / Machine | 模块 | 发行版 / Kernel | WiFi | 蓝牙 / BT | 备注 |
 |---|---|---|---|---|---|
-| 便携盘原生启动（机型未记录）¹ | NCM865 · `17cb:1107` / `2c7c:0130` | Ubuntu 22.04.5 · 6.8.0-138-generic | ✅ RT-BE88U | ✅ 鼠标 + 耳机 | 首个验证记录，DKMS 补丁模块 |
+| Dell Inspiron 7405 2-in-1（`0P76G3`，BIOS 1.20.0） | NCM865 · `17cb:1107` / `2c7c:0130` | Ubuntu 22.04.5 · 6.8.0-138-generic | ✅ ASUS RT-BE88U | ✅ 鼠标 + 耳机 | 首个验证记录；Ubuntu To Go 便携盘原生启动；DKMS 补丁模块 |
 | _(你的机器)_ | | | | | |
 
-¹ 同一块盘在 VMware 里跑时 `lspci` 只有虚拟硬件 —— 虚拟机看不到这张卡，属预期。
+用 `./scripts/report-machine.sh` 生成你那一行，见下面「怎么加一行」。
 
 ## 怎么加一行
 
 1. 在目标机上装好（`sudo ./install.sh`），**按 README 第 4 节处理完 Secure Boot 并重启**；
-2. 跑 `./verify.sh`，确认第 1 段能列出 `17cb:1107` 与 `2c7c:0130`；
-3. 填表，或直接开个 issue 带上：
+2. 跑一条命令，它会直接打印出可粘贴的表格行：
 
 ```bash
-# 机型
-cat /sys/class/dmi/id/product_name /sys/class/dmi/id/sys_vendor
-# 驱动与固件状态
-./verify.sh
-# 蓝牙到底有没有起来
-bluetoothctl list; dmesg | grep -i btusb | tail -20
-# 6 GHz 是否可用（有 Band 4 且信道列表非空）
-iw phy | grep -A12 'Band 4'
+./scripts/report-machine.sh                 # 打印表格行 + 明细
+./scripts/report-machine.sh --save ~/fc-report   # 顺便把日志存成文件，便于开 issue
+```
+
+3. 把输出第一行（`| 机型 | NCM865 · … |`）贴进上面表格，或开 issue 附上
+   `--save` 目录里的内容。需要手工核对时：
+
+```bash
+./verify.sh                                   # 驱动与固件状态
+cat /sys/class/dmi/id/product_name            # 机型
+bluetoothctl list; dmesg | grep -i btusb      # 蓝牙到底有没有起来
+iw phy | grep -A12 'Band 4'                   # 6 GHz 是否在信道表里
 ```
 
 ## 目前已知的“能用/不能用”边界

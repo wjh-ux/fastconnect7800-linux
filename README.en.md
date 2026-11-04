@@ -19,7 +19,7 @@ half: `btusb` only learned the USB ID `2c7c:0130` in **v6.13**, so older kernels
 QCA firmware download and end with `hci0: Opcode 0x0c03 failed: -110`. This repo adds that
 one ID as a DKMS module and ships the firmware.
 
-> Verified on real hardware (Ubuntu 22.04.5 / 6.8.0-138): WiFi 7 associates with an ASUS
+> Verified on real hardware (Dell Inspiron 7405 2-in-1, Ubuntu 22.04.5 / 6.8.0-138): WiFi 7 associates with an ASUS
 > RT-BE88U, a Bluetooth mouse and a Bluetooth headset both connect and work.
 > Machine matrix: [COMPATIBILITY.md](COMPATIBILITY.md). Reproducible build/install
 > evidence: [docs/EVIDENCE.md](docs/EVIDENCE.md).

@@ -17,7 +17,7 @@ Linux 里是两块彼此独立的设备：PCI `17cb:1107`（WiFi）和 USB `2c7c
 6.1/6.12）会把它当通用 USB 蓝牙设备，跳过 QCA 固件下载，最后停在
 `hci0: Opcode 0x0c03 failed: -110`。本仓库做的就是把那个 ID 补上（DKMS 模块）并把固件备齐。
 
-> 真机验证（Ubuntu 22.04.5 / 6.8.0-138）：WiFi 连接 ASUS RT-BE88U 正常上网，
+> 真机验证（Dell Inspiron 7405 2-in-1，Ubuntu 22.04.5 / 6.8.0-138）：WiFi 连接 ASUS RT-BE88U 正常上网，
 > 蓝牙鼠标、蓝牙耳机均连接并正常工作。机型列表见 [COMPATIBILITY.md](COMPATIBILITY.md)，
 > 可复现的构建/安装证据见 [docs/EVIDENCE.md](docs/EVIDENCE.md)。
 
@@ -198,7 +198,8 @@ COMPATIBILITY.md                # 机型兼容性表
 - 安全相关：见 [SECURITY.md](SECURITY.md)，别开公开 issue。
 - 版本变化：[CHANGELOG.md](CHANGELOG.md)。
 - 最有用的贡献其实是**机型反馈**：`hci0` 起不起得来、6 GHz 能不能上，这两个数据点
-  比代码更稀缺，直接往 [COMPATIBILITY.md](COMPATIBILITY.md) 加一行。
+  比代码更稀缺。跑一句 `./scripts/report-machine.sh`，把打印出来的表格行贴进
+  [COMPATIBILITY.md](COMPATIBILITY.md) 就完事。
 
 ## 11. 参考
 
