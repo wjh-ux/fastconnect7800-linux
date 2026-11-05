@@ -85,23 +85,25 @@ config wifi-iface 'default_radio0'
 
 ## 4. 蓝牙
 
+**先说结论：x86/64 的 OpenWrt 24.10 根本装不了 `kmod-btusb`。** 它的 `DEPENDS` 里带
+`+kmod-btmtk`，而 `kmod-btmtk` 没有为 x86 目标构建（kmods 索引里查不到），所以包管理器
+直接判依赖不满足。也就是说 Bluetooth 在这里不但要打 ID 补丁，还得自编译内核模块 ——
+比 WiFi 那条路难得多。
+
+这带来两个选择：
+
+1. **不折腾蓝牙**：WiFi 用它，蓝牙用 USB 蓝牙棒（路由器上最简单）；
+2. **自编译**：`make menuconfig` 里打开 `kmod-btusb` 并把 `kmod-btmtk` 一起选上，
+   再打 `openwrt/patches/` 里的 ID 补丁（6.6 缺 ID），固件自己放进 `/lib/firmware/qca/`。
+
+真要在支持的平台上试，命令是：
+
 ```sh
 opkg install kmod-btusb bluez-daemon bluez-utils
 ```
 
-两件 OpenWrt 不提供、要你自己补的东西：
-
-1. **固件**：把仓库 `firmware/qca/` 里的 `rampatch_usb_00190200.bin` 和
-   `nvm_usb_00190200.bin` 拷到 `/lib/firmware/qca/`
-   （`install-openwrt.sh --with-bt` 若在同一目录会替你拷）。
-2. **USB ID**：24.10 的内核没有 `2c7c:0130`，必须给内核打补丁后重新编译：
-
-   ```sh
-   cp openwrt/patches/010-btusb-wcn785x-usb-ids.patch \
-      <openwrt>/target/linux/generic/pending-6.6/
-   ```
-
-   snapshot（6.18）不用打，主线已经有。
+OpenWrt 不打包的那两个固件，从仓库 `firmware/qca/` 拷到 `/lib/firmware/qca/` 即可
+（`install-openwrt.sh --with-bt` 会在同一目录时替你拷）。
 
 实话实说：路由器上跑蓝牙的用途有限（BLE 传感器、串口/网络桥），bluez 在 OpenWrt 上
 不是桌面级体验，配对/音频基本别指望。
