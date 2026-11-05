@@ -77,6 +77,13 @@ sha256sum -c SHA256SUMS
 - The machine must be the one the card is physically in — a VM without PCIe passthrough
   cannot use it, no matter what you install
 
+## 2.2 Router systems (OpenWrt / iStoreOS)
+
+A soft router is a different story: `ath12k` already exists in OpenWrt 24.10 (kernel 6.6),
+but the `btusb` ID `2c7c:0130` only landed in 6.13 — so 24.10 gives you **WiFi yes,
+Bluetooth only with a rebuilt kernel**, while a snapshot (6.18) has both. Package names,
+UCI example and the build patch are in [docs/OPENWRT.md](docs/OPENWRT.md).
+
 ## 3. What `install.sh` does
 
 1. **Firmware** — copies `firmware/` into `/lib/firmware` (skips identical files, keeps a
@@ -181,6 +188,8 @@ scripts/
   build-btusb-from-source.sh    # non-6.8 kernels: build from the distro's own source
   fetch-firmware.sh             # download the 21 blobs, verify against firmware/SHA256SUMS
   fetch-debs.sh                 # pre-download dkms/headers into debs/
+scripts/install-openwrt.sh      # one-shot OpenWrt / iStoreOS install (opkg)
+openwrt/patches/                # btusb ID patch for OpenWrt kernels (6.6)
 tests/run.sh                    # static self-check (this is what CI runs)
 docs/EXPECTED.md                # acceptance criteria
 COMPATIBILITY.md                # machine matrix

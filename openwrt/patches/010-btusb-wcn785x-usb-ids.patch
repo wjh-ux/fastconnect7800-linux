@@ -1,0 +1,32 @@
+# OpenWrt patch: teach btusb about the Qualcomm WCN785x USB IDs
+#
+# The card (FastConnect 7800 / NCM865) exposes Bluetooth as USB 2c7c:0130.
+# Upstream only added that ID in v6.13; OpenWrt 24.10 ships 6.6 and the string
+# is missing there, so btusb binds it as a generic dongle, skips the QCA
+# firmware download and hci0 never initialises.
+#
+# Drop this file into target/linux/generic/pending-6.6/ of an OpenWrt 24.10
+# tree (snapshot / 6.18 already has the ID upstream, no patch needed).
+# It applies with patch -p1 from the kernel tree root.
+#
+# Bluetooth also needs the QCA firmware, which OpenWrt does not package:
+#   /lib/firmware/qca/rampatch_usb_00190200.bin
+#   /lib/firmware/qca/nvm_usb_00190200.bin
+# (see docs/OPENWRT.md)
+#
+--- a/drivers/bluetooth/btusb.c
++++ b/drivers/bluetooth/btusb.c
+@@ -170,6 +170,13 @@ static const struct usb_device_id btusb_table[] = {
+ 	{ USB_DEVICE(0x8087, 0x0a5a),
+ 	  .driver_info = BTUSB_INTEL_BOOT | BTUSB_BROKEN_ISOC },
+ 
++	/* Quectel NCM865 / Qualcomm WCN785x (FastConnect 7800) */
++	{ USB_DEVICE(0x2c7c, 0x0130), .driver_info = BTUSB_QCA_WCN6855 |
++						     BTUSB_WIDEBAND_SPEECH },
++	{ USB_DEVICE(0x2c7c, 0x0131), .driver_info = BTUSB_QCA_WCN6855 |
++						     BTUSB_WIDEBAND_SPEECH },
++	{ USB_DEVICE(0x2c7c, 0x0132), .driver_info = BTUSB_QCA_WCN6855 |
++						     BTUSB_WIDEBAND_SPEECH },
+ 	{ }	/* Terminating entry */
+ };
+ 

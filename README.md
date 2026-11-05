@@ -73,6 +73,12 @@ sha256sum -c SHA256SUMS
 - 能 `sudo`，能写 `/lib/firmware` 与 `/lib/modules`
 - 必须在卡**物理所在**的机器上跑 —— 虚拟机没有 PCIe 直通，装什么都没用
 
+### 2.2 路由器系统（OpenWrt / iStoreOS）
+
+软路由上用这张卡是另一套玩法：ath12k 在 OpenWrt 24.10（内核 6.6）就有，但 **btusb 的
+`2c7c:0130` 要 6.13**，所以 24.10 是「WiFi 能用、蓝牙要自己编」，snapshot（6.18）两个都行。
+包名、UCI 配置、自编译补丁都在 [docs/OPENWRT.md](docs/OPENWRT.md)。
+
 ## 3. `install.sh` 做了什么
 
 1. **固件** — 把 `firmware/` 拷进 `/lib/firmware`（相同跳过，被覆盖的旧文件留
@@ -175,6 +181,8 @@ scripts/
   build-btusb-from-source.sh    # 非 6.8 内核：取本机内核源码编译
   fetch-firmware.sh             # 下载 21 个固件，按 firmware/SHA256SUMS 校验
   fetch-debs.sh                 # 预下载 dkms/头文件到 debs/
+scripts/install-openwrt.sh      # OpenWrt / iStoreOS 一键装（opkg）
+openwrt/patches/                # 给 OpenWrt 内核用的 btusb ID 补丁（6.6）
 tests/run.sh                    # 静态自检（CI 跑的就是它）
 docs/EXPECTED.md                # 验收标准：什么算“装好了”
 COMPATIBILITY.md                # 机型兼容性表

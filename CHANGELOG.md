@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.2.0 — 2026-11-05
+
+新增 OpenWrt / iStoreOS 支持（WiFi 走 ath12k，蓝牙按内核版本分情况）。
+
+- `docs/OPENWRT.md`：按**内核**而不是发行版名字列支持矩阵 —— 23.05（5.15）根本没有 ath12k；
+  24.10（6.6）WiFi 可以、蓝牙要打补丁；snapshot（6.18）两个都行。含 UCI AP 配置示例、
+  6 GHz 注意事项、自编译步骤、iStoreOS 的判断流程。
+- `scripts/install-openwrt.sh`：BusyBox sh 写的 opkg 安装脚本（`--with-bt` 连蓝牙包一起装），
+  会检查内核版本、PCI 设备、固件落位，并可从仓库 `firmware/qca/` 直接拷蓝牙固件。
+- `openwrt/patches/010-btusb-wcn785x-usb-ids.patch`：给 OpenWrt 6.6 内核用的 btusb ID
+  补丁，放到 `target/linux/generic/pending-6.6/`；已对 Linux v6.6 的 `btusb.c` 实测
+  `git apply --check` 干净通过，打完带 3 个 ID。
+- 两个 README 增加 2.2 节指向上面的文档。
+
 ## v1.1.1 — 2026-11-04
 
 文档补完（v1.1.0 的 bundle 里 README 指向了尚不存在的 EVIDENCE.md，这一版修掉）：
