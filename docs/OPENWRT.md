@@ -56,6 +56,9 @@ iw phy | grep -i band        # Band 1 / 2 / 4
 
 ## 3. 配成 AP（UCI）
 
+> 已经有一块写好的 OpenWrt U 盘？那份逐步操作（含离线装 ath12k）在
+> [FIRST-BOOT-OPENWRT.md](FIRST-BOOT-OPENWRT.md)，下面这段是同样的配置思路。
+
 `/etc/config/wireless`，2.4 GHz 起步最稳，跑通再换 5 / 6 GHz：
 
 ```
