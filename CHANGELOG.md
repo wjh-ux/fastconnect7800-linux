@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.2.1 — 2026-11-05
+
+把 OpenWrt 的“照着一行行抄”变成一条命令。
+
+- `openwrt/setup-ap.sh`：BusyBox sh 写的一键脚本 —— 找 `.ipk`（`/boot/ipk`，找不到会尝试
+  挂载 `/dev/sda1`）→ 装 ath12k + 固件 → `wifi config` → 写 UCI（band/信道/htmode/country/
+  SSID/SAE 密码）→ `wifi reload` → 报告 `phy0-ap0` 是否起来。参数
+  `[ssid] [密码] [2g|5g|6g] [信道]`，幂等，失败时给出下一步排查命令。
+- `tests/openwrt-stub-test.sh`：用假的 `uci`/`opkg`/`wifi`/`iw`/`lsmod` 把脚本流程跑一遍，
+  断言它发出的 uci 调用（band/htmode/ssid/commit/reload）、跳过重复安装、拒绝非法 band。
+  这样在没有 OpenWrt 的机器上也能回归。
+- `docs/FIRST-BOOT-OPENWRT.md`：第 4 节改成“先跑脚本”，手工 uci 步骤保留作为对照。
+
 ## v1.2.0 — 2026-11-05
 
 新增 OpenWrt / iStoreOS 支持（WiFi 走 ath12k，蓝牙按内核版本分情况）。

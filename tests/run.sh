@@ -61,7 +61,7 @@ for f in LICENSE NOTICE README.md README.en.md COMPATIBILITY.md docs/EXPECTED.md
          install.sh lib.sh btusb/src-6.8/btusb.c btusb/src-6.8/Makefile \
          btusb/patch_btusb.py scripts/build-btusb-from-source.sh \
          scripts/fetch-firmware.sh scripts/fetch-debs.sh scripts/report-machine.sh \
-         scripts/install-openwrt.sh docs/OPENWRT.md \
+         scripts/install-openwrt.sh openwrt/setup-ap.sh docs/OPENWRT.md \
          openwrt/patches/010-btusb-wcn785x-usb-ids.patch firmware/SHA256SUMS; do
 	if [ -s "$f" ]; then pass "$f"; else fail "$f missing or empty"; fi
 done

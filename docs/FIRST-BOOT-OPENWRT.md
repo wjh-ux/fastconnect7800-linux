@@ -79,6 +79,18 @@ uci show wireless
 
 ## 4. 改成 AP（先 2.4 GHz，最稳）
 
+**一条命令就够**（脚本在盘里，会自动装包 → `wifi config` → 写 UCI → reload → 报结果）：
+
+```sh
+sh /boot/setup-ap.sh                       # 默认 SSID FastConnect-AP / 密码 ChangeMe-2026 / 2.4G ch6
+sh /boot/setup-ap.sh MyWiFi MyPass2026 5g 36
+```
+
+参数是 `[ssid] [密码] [band: 2g|5g|6g] [信道]`，重复执行只改配置不会重复装包。
+看到 `✅ AP 已起来` 就成了，`iw dev` 里应出现 `phy0-ap0`。
+
+下面是它等价的手工步骤 —— 想看每一步在干什么、或者脚本报错时对照着排，再用这段：
+
 ```sh
 uci set wireless.radio0.disabled='0'
 uci set wireless.radio0.band='2g'
